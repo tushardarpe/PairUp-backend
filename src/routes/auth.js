@@ -4,7 +4,6 @@ const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const { validateSignupData } = require("../utils/validations");
 
-
 // Signup Route
 authRouter.post("/signup", async (req, res) => {
   // Validation of the data
@@ -12,7 +11,17 @@ authRouter.post("/signup", async (req, res) => {
     validateSignupData(req);
 
     // Encrypt the password
-    const { firstName, lastName, emailId, password } = req.body;
+    const {
+      firstName,
+      lastName,
+      emailId,
+      password,
+      gender,
+      skills,
+      photoUrl,
+      about,
+      age,
+    } = req.body;
     const passwordHash = await bcrypt.hash(password, 10);
     console.log(passwordHash);
 
@@ -22,6 +31,11 @@ authRouter.post("/signup", async (req, res) => {
       lastName,
       emailId,
       password: passwordHash,
+      gender,
+      skills,
+      photoUrl,
+      about,
+      age,
     });
 
     await user.save();
@@ -49,22 +63,29 @@ authRouter.post("/login", async (req, res) => {
       res.cookie("token", token, {
         expires: new Date(Date.now() + 1 * 3600000),
       });
-      res.send("Login Successful!");
+      // Remove password before sending ✅
+      const userObj = user.toObject();
+      delete userObj.password;
+
+      res.send(userObj);
     } else {
       throw new Error("Invalid Credentials");
     }
   } catch (err) {
-    res.status(400).send("ERROR: " + err.message);
+    res.status(400).json({
+      message: err.message,
+    });
   }
 });
 
 // Logout Route
 authRouter.post("/logout", async (req, res) => {
-    res.cookie("token", null, {
-        expires: new Date(Date.now()),
-    });
-    res.send("Logout Successful!");
+  res.cookie("token", null, {
+    expires: new Date(Date.now()),
+  });
+  res.status(200).json({
+    message: "Logout Successful!",
+  });
 });
-
 
 module.exports = authRouter;

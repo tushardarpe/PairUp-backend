@@ -6,7 +6,7 @@ const userRouter = express.Router();
 
 const USER_SAFE_DATA = "firstName lastName gender photoUrl age about skills";
 
-userRouter.get("/user/requests/received", userAuth, async (req, res) => {
+userRouter.get("/requests/received", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
     const revceivedRequests = await ConnectionRequest.find({
@@ -26,7 +26,7 @@ userRouter.get("/user/requests/received", userAuth, async (req, res) => {
   }
 });
 
-userRouter.get("/user/connections", userAuth, async (req, res) => {
+userRouter.get("/connections", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
     const connections = await ConnectionRequest.find({
@@ -35,8 +35,8 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
         { fromUserId: loggedInUser._id, status: "accepted" },
       ],
     })
-      .populate("fromUserId", "firstName lastName photoUrl about skills")
-      .populate("toUserId", "firstName lastName photoUrl about skills");
+      .populate("fromUserId", "firstName lastName gender age photoUrl about skills")
+      .populate("toUserId", "firstName lastName gender age photoUrl about skills");
 
     const data = connections.map((connection) => {
       if (connection.fromUserId._id.equals(loggedInUser._id)) {
@@ -54,13 +54,16 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
   }
 });
 
-userRouter.get("/user/feed", userAuth, async (req, res) => {
+userRouter.get("/feed", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
-    const page = parseInt(req.query.page) || 1;
+    // const page = parseInt(req.query.page) || 1;
+    // let limit = parseInt(req.query.limit) || 10;
+    // limit = limit > 50 ? 50 : limit;
+    // const skip = (page - 1) * limit;
+
     let limit = parseInt(req.query.limit) || 10;
-    limit = limit > 50 ? 50 : limit;
-    const skip = (page - 1) * limit;
+    limit = Math.min(limit, 50);
 
     // Find all the connection requests (sent + received)
     const connectionRequests = await ConnectionRequest.find({
@@ -80,7 +83,6 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
       ],
     })
       .select(USER_SAFE_DATA)
-      .skip(skip)
       .limit(limit);
 
     res.send(users);

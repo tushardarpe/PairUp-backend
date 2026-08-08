@@ -10,7 +10,7 @@ const bcrypt = require("bcrypt");
 
 
 // View Profile Route
-profileRouter.get("/profile/view", userAuth, async (req, res) => {
+profileRouter.get("/view", userAuth, async (req, res) => {
   try {
     const user = req.user;
     res.send(user);
@@ -20,7 +20,7 @@ profileRouter.get("/profile/view", userAuth, async (req, res) => {
 });
 
 // Update Profile Route
-profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
+profileRouter.patch("/edit", userAuth, async (req, res) => {
   try {
     const isEditAllowed = validateEditProfileData(req);
     if (!isEditAllowed) {
@@ -43,7 +43,7 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
 });
 
 // changePassword Route
-profileRouter.patch("/profile/changePassword", userAuth, async (req, res) => {
+profileRouter.patch("/changePassword", userAuth, async (req, res) => {
   try {
     validateCurrentAndNewPassword(req);
     const user = req.user;
