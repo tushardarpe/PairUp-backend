@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const connectDB = require("./config/database");
@@ -30,8 +31,10 @@ dns.setServers(["1.1.1.1", "8.8.8.8"]);
 connectDB()
   .then(() => {
     console.log("Database connected successfully");
-    app.listen(7777, () => {
-      console.log("server has been successfully listening on port 7777");
+    app.listen(process.env.PORT, () => {
+      console.log(
+        `server has been successfully listening on port ${process.env.PORT}`,
+      );
     });
   })
   .catch((err) => {
