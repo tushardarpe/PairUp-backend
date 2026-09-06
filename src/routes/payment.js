@@ -93,9 +93,18 @@ paymentRouter.post("/webhook", async (req, res) => {
     const user = await User.findOne({ _id: payment.userId });
     console.log("User found:", !!user);
     console.log("User ID:", payment.userId);
+
+    console.log("Before isPremium assignment");
     user.isPremium = true;
+    console.log("After isPremium assignment:", user.isPremium);
+
+    console.log("Before membershipType assignment");
     user.membershipType = payment.notes.membershipType;
+    console.log("After membershipType assignment:", user.membershipType);
+
+    console.log("Before user.save()");
     await user.save();
+    console.log("After user.save()");
 
     console.log("========== PREMIUM ACTIVATED ==========");
     console.log("User:", user.emailId);
@@ -114,6 +123,8 @@ paymentRouter.post("/webhook", async (req, res) => {
 
     return res.status(200).json({ msg: "Webhook received successfully" });
   } catch (err) {
+    console.error("========== WEBHOOK ERROR ==========");
+    console.error(err);
     return res.status(500).json({ msg: err.message });
   }
 });
