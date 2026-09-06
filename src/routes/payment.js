@@ -60,12 +60,16 @@ paymentRouter.post("/create", userAuth, async (req, res) => {
 
 paymentRouter.post("/webhook", async (req, res) => {
   try {
+    console.log("========== RAZORPAY WEBHOOK RECEIVED ==========");
+    console.log("Event:", req.body.event);
     const webhookSignature = req.get("X-Razorpay-Signature");
     const isWebhookValid = validateWebhookSignature(
       JSON.stringify(req.body),
       webhookSignature,
       process.env.RAZORPAY_WEBHOOK_SECRET,
     );
+
+    console.log("Webhook signature valid:", isWebhookValid);
 
     if (!isWebhookValid) {
       return res.status(400).json({ msg: "Webhook Signature is Invalid!" });
@@ -74,16 +78,29 @@ paymentRouter.post("/webhook", async (req, res) => {
     // Update my payment status in DB
     const paymentDetails = req.body.payload.payment.entity;
 
-    const payment = await Payment.findOne({ orderId: paymentDetails.order_id});
+    console.log("Razorpay payment ID:", paymentDetails.id);
+    console.log("Razorpay order ID:", paymentDetails.order_id);
+    console.log("Payment status:", paymentDetails.status);
+
+    const payment = await Payment.findOne({ orderId: paymentDetails.order_id });
+
+    console.log("Payment found in DB:", !!payment);
     payment.status = paymentDetails.status;
     await payment.save();
 
+    console.log("Payment status updated in DB");
 
-    const user = await User.findOne({ _id: payment.userId});
+    const user = await User.findOne({ _id: payment.userId });
+    console.log("User found:", !!user);
+    console.log("User ID:", payment.userId);
     user.isPremium = true;
     user.membershipType = payment.notes.membershipType;
     await user.save();
 
+    console.log("========== PREMIUM ACTIVATED ==========");
+    console.log("User:", user.emailId);
+    console.log("isPremium:", user.isPremium);
+    console.log("membershipType:", user.membershipType);
 
     // Update the user as Premium
 
