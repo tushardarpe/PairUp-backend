@@ -73,7 +73,7 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    memberShipType: {
+    membershipType: {
       type: String,
     },
     isOnline: {
