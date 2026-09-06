@@ -35,8 +35,8 @@ userRouter.get("/connections", userAuth, async (req, res) => {
         { fromUserId: loggedInUser._id, status: "accepted" },
       ],
     })
-      .populate("fromUserId", "firstName lastName gender age photoUrl about skills")
-      .populate("toUserId", "firstName lastName gender age photoUrl about skills");
+      .populate("fromUserId", "firstName lastName gender age photoUrl about skills isOnline lastSeen")
+      .populate("toUserId", "firstName lastName gender age photoUrl about skills isOnline lastSeen");
 
     const data = connections.map((connection) => {
       if (connection.fromUserId._id.equals(loggedInUser._id)) {
