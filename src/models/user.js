@@ -76,6 +76,10 @@ const userSchema = new mongoose.Schema(
     membershipType: {
       type: String,
     },
+    membershipDuration: {
+      type: String,
+      enum: ["monthly", "yearly"],
+    },
     isOnline: {
       type: Boolean,
       default: false,

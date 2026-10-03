@@ -81,10 +81,10 @@ paymentRouter.post("/webhook", async (req, res) => {
     payment.status = paymentDetails.status;
     await payment.save();
 
-
     const user = await User.findOne({ _id: payment.userId });
     user.isPremium = true;
     user.membershipType = payment.notes.membershipType;
+    user.membershipDuration = payment.notes.duration;
     await user.save();
 
     // Update the user as Premium
@@ -101,6 +101,45 @@ paymentRouter.post("/webhook", async (req, res) => {
   } catch (err) {
     console.error("========== WEBHOOK ERROR ==========");
     console.error(err);
+    return res.status(500).json({ msg: err.message });
+  }
+});
+
+paymentRouter.get("/premium/verify", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    let membershipType = user.membershipType;
+    let duration = user.membershipDuration;
+
+    // Fall back to the latest payment for users who became premium before
+    // membershipDuration was added to the User model.
+    if (user.isPremium && (!membershipType || !duration)) {
+      const latestPayment = await Payment.findOne({ userId: user._id }).sort({
+        _id: -1,
+      });
+
+      if (!membershipType && latestPayment) {
+        membershipType = latestPayment.notes.membershipType;
+      }
+
+      if (!duration && latestPayment) {
+        duration = latestPayment.notes.duration;
+      }
+    }
+
+    return res.json({
+      isPremium: Boolean(user.isPremium),
+      membership: user.isPremium && membershipType
+        ? {
+            type: membershipType,
+            duration: duration || null,
+          }
+        : null,
+      // Keep these fields available for simple/legacy frontend consumers.
+      membershipType: user.isPremium ? membershipType || null : null,
+      duration: user.isPremium ? duration || null : null,
+    });
+  } catch (err) {
     return res.status(500).json({ msg: err.message });
   }
 });
